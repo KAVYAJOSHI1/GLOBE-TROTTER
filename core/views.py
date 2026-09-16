@@ -32,11 +32,17 @@ def _form_errors_to_messages(request, form):
 
 
 def home(request):
-    return redirect("dashboard" if request.user.is_authenticated else "login")
+    if request.user.is_authenticated:
+        if request.user.is_staff:
+            return redirect("admin_dashboard_page")
+        return redirect("dashboard")
+    return redirect("login")
 
 
 def signup_view(request):
     if request.user.is_authenticated:
+        if request.user.is_staff:
+            return redirect("admin_dashboard_page")
         return redirect("dashboard")
 
     form = SignupForm(request.POST or None)
@@ -53,6 +59,8 @@ def signup_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
+        if request.user.is_staff:
+            return redirect("admin_dashboard_page")
         return redirect("dashboard")
 
     form = LoginForm(request.POST or None)
@@ -71,6 +79,8 @@ def login_view(request):
                     next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
                 ):
                     return redirect(next_url)
+                if user.is_staff:
+                    return redirect("admin_dashboard_page")
                 return redirect("dashboard")
             messages.error(request, "Invalid username/email or password.")
         else:
